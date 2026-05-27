@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dự đoán Điểm Chuẩn BKHN 2026 | TSA · XTTN · THPT</title>
+  <meta name="description" content="Tra cứu và dự đoán điểm chuẩn 2026 Đại học Bách Khoa Hà Nội theo các phương thức TSA, XTTN 1.1, XTTN 1.2, XTTN 1.3 và THPT." />
+  
+  <!-- Open Graph / Facebook / Zalo -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Dự đoán Điểm Chuẩn BKHN 2026 | Phân tích 65 ngành" />
+  <meta property="og:description" content="Nhập điểm của bạn để kiểm tra cơ hội đỗ vào Đại học Bách Khoa Hà Nội năm 2026. Phân tích phổ điểm TSA, độ hot và các tổ hợp xét tuyển." />
+  <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/a/a1/Logo_Hust.png" />
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Dự đoán Điểm Chuẩn BKHN 2026 | Phân tích 65 ngành" />
+  <meta name="twitter:description" content="Nhập điểm của bạn để kiểm tra cơ hội đỗ vào Đại học Bách Khoa Hà Nội năm 2026. Phân tích phổ điểm TSA, độ hot và các tổ hợp xét tuyển." />
+  <meta name="twitter:image" content="https://upload.wikimedia.org/wikipedia/commons/a/a1/Logo_Hust.png" />
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- BACKGROUND DECORATION -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0" style="position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden;">
+    <div class="hero-deco hero-deco-1"></div>
+    <div class="hero-deco hero-deco-2"></div>
+    <div class="hero-deco hero-deco-3"></div>
+  </div>
+
+  <!-- NAVBAR -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">
+        <img src="logo.svg" alt="BKHN Logo" style="width:36px;height:36px;border-radius:8px;object-fit:contain;box-shadow: 0 4px 12px rgba(200,0,26,0.2);">
+        <div class="nav-logo-text">BKHN <span>2026</span></div>
+      </a>
+      <div class="nav-spacer"></div>
+      <div class="nav-badge hidden sm:flex" style="display:none;">
+        <div class="nav-dot"></div>
+        Dự đoán 2026 (Cập nhật liên tục)
+      </div>
+      <button class="nav-info-btn" onclick="document.getElementById('infoPopup').classList.add('show')" title="Thông tin dự đoán">i</button>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <section class="hero anim-fade-in" style="padding: 24px 16px;">
+    <div class="hero-badge">
+      <span></span>
+      Phân tích 65 ngành · Phổ điểm TSA 2025-2026
+    </div>
+    <h1 class="anim-fade-up" style="animation-delay:0.1s; font-size:28px; margin-bottom:8px;">
+      Dự Đoán Điểm Chuẩn<br/>
+      <span class="grad-red" id="heroTitleSpan">Bách Khoa Hà Nội</span>
+    </h1>
+    <p class="anim-fade-up" id="heroDesc" style="animation-delay:0.2s; font-size:14px; max-width:600px; margin: 0 auto 16px;">
+      Công cụ phân tích xu hướng điểm chuẩn dựa trên phổ điểm đánh giá tư duy (TSA), độ hot của ngành và dữ liệu tuyển sinh. Nhập điểm của bạn để kiểm tra cơ hội đỗ.
+    </p>
+
+    <!-- Shared Summary (Hidden by default) -->
+    <div id="sharedSummary" class="hidden anim-fade-up" style="animation-delay:0.2s; background:#fff; border-radius:16px; padding:16px; margin: 16px auto; max-width:500px; box-shadow:0 10px 25px rgba(200,0,26,0.08); text-align:left; border:1px solid var(--pink-pale);">
+      <!-- JS populated -->
+    </div>
+
+    <div class="anim-fade-up" style="animation-delay:0.25s;">
+      <a href="https://zalo.me/g/zyuv7njjgkwrr5ohsixp" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#0068ff;color:#fff;padding:10px 20px;border-radius:999px;font-weight:700;font-size:13px;text-decoration:none;box-shadow:0 4px 12px rgba(0,104,255,0.3);transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,104,255,0.4)';" onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 12px rgba(0,104,255,0.3)';">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20.24 13.56C21.41 12.59 22.15 11.08 22.15 9.42C22.15 6.35 19.34 3.86 15.86 3.86C12.38 3.86 9.57 6.35 9.57 9.42C9.57 12.49 12.38 14.98 15.86 14.98C16.48 14.98 17.07 14.88 17.62 14.71C17.62 14.71 20.32 16.33 20.25 16.29C20.15 16.21 20.01 15.39 20.01 15.39C20.06 15.22 20.16 14.64 20.24 13.56ZM11.13 14.28C9.58 15.69 7.42 16.59 5.04 16.59C3.66 16.59 2.37 16.28 1.25 15.73C1.25 15.73 0.21 17.55 0.35 17.51C0.54 17.45 1.58 15.77 1.58 15.77C1.44 16.03 1.35 16.32 1.35 16.63C1.35 19.69 4.16 22.18 7.64 22.18C11.12 22.18 13.93 19.69 13.93 16.62C13.93 15.76 13.71 14.94 13.33 14.22C12.65 14.36 11.9 14.36 11.13 14.28Z" fill="white"/>
+          <text x="50%" y="50%" font-size="10" fill="white" font-weight="900" text-anchor="middle" dy=".3em">Zalo</text>
+        </svg>
+        Tham gia hội những người thích học HUST
+      </a>
+    </div>
+  </section>
+
+  <div class="container" style="padding-top:24px; padding-bottom:64px;">
+    
+    <div class="main-layout">
+      <!-- LEFT COLUMN: MAIN CONTENT -->
+      <div class="col-left">
+
+        <!-- SCORE CHECKER & METHOD SELECTOR -->
+        <div id="scoreChecker" class="section anim-fade-up" style="animation-delay:0.35s">
+          <div class="checker-inner">
+            <div style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
+              <div class="section-label" style="margin-bottom:0;">KIỂM TRA CƠ HỘI TRÚNG TUYỂN</div>
+              <button id="resetBtn" class="hidden" onclick="resetData()" style="padding:6px 12px; font-size:12px; background:#fff0f3; color:var(--red); border:1px solid var(--pink-pale); border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(200,0,26,0.05); transition:transform 0.1s;">🔄 Tự tính điểm của bạn</button>
+            </div>
+            <div class="checker-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              Kiểm tra cơ hội trúng tuyển
+            </div>
+            <div class="checker-sub">Chọn phương thức và nhập điểm để xem bạn có thể đỗ những ngành nào</div>
+            
+            <div class="checker-row" style="margin-bottom:12px;">
+              <div class="checker-field" style="flex:1;">
+                <label>1. Phương thức xét tuyển</label>
+                <div class="method-tabs" style="display:flex;">
+                  <button class="method-tab active" data-method="tsa" onclick="setMethod('tsa')"><span class="tab-icon">🧠</span> TSA</button>
+                  <button class="method-tab" data-method="x12" onclick="setMethod('x12')"><span class="tab-icon">🏛</span> XTTN 1.2</button>
+                  <button class="method-tab" data-method="x13" onclick="setMethod('x13')"><span class="tab-icon">🌆</span> XTTN 1.3</button>
+                  <button class="method-tab" data-method="thpt" onclick="setMethod('thpt')"><span class="tab-icon">📝</span> THPT</button>
+                </div>
+              </div>
+              <div class="checker-field" style="max-width:200px;">
+                <label id="methodHint">Thang điểm 100</label>
+                <input type="number" id="userScoreInput" class="checker-input" placeholder="VD: 65.5" oninput="onScoreInput()" />
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 8px;">
+              <div class="checker-field">
+                <label>2. Chứng chỉ IELTS (Chỉ TSA)</label>
+                <select id="ieltsSelect" class="checker-select" onchange="onScoreInput()">
+                  <option value="0">Không có / Dưới 5.0</option>
+                  <option value="1">IELTS 5.0 (+1đ)</option>
+                  <option value="2">IELTS 5.5 (+2đ)</option>
+                  <option value="3">IELTS 6.0 (+3đ)</option>
+                  <option value="4">IELTS 6.5 (+4đ)</option>
+                  <option value="5">IELTS ≥ 7.0 (+5đ)</option>
+                </select>
+              </div>
+              <div class="checker-field">
+                <label>3. Khu vực ưu tiên</label>
+                <select id="kvSelect" class="checker-select" onchange="onScoreInput()">
+                  <option value="0">KV3 (Không ưu tiên)</option>
+                  <option value="0.25">KV2 (+0.25đ)</option>
+                  <option value="0.5">KV2-NT (+0.5đ)</option>
+                  <option value="0.75">KV1 (+0.75đ)</option>
+                </select>
+              </div>
+              <div class="checker-field">
+                <label>4. Đối tượng ưu tiên</label>
+                <select id="dtSelect" class="checker-select" onchange="onScoreInput()">
+                  <option value="0">Không thuộc ĐT ưu tiên</option>
+                  <option value="1">Nhóm ĐT 5-7 (+1.0đ)</option>
+                  <option value="2">Nhóm ĐT 1-4 (+2.0đ)</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="checkerResult" class="checker-result"></div>
+          </div>
+        </div>
+        
+        <!-- ASPIRATIONS SECTION -->
+        <div id="aspirationsContainer" class="section anim-fade-up hidden" style="animation-delay:0.4s">
+          <div class="card-header border-b" style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="card-title">📌 Danh sách Nguyện vọng (Tối đa 3)</div>
+            <div style="display:flex;gap:8px;">
+              <button class="checker-btn" onclick="shareResult()" style="padding: 6px 12px; font-size: 12px; height: auto;">🔗 Chia sẻ & khoe kết quả với bạn bè</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="main-table">
+              <tbody id="aspirationsBody">
+                <!-- JS populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- MAIN TABLE -->
+        <div class="card section anim-fade-up" style="animation-delay:0.45s">
+          
+          <!-- Filter bar -->
+          <div class="filter-bar">
+            <div class="filter-group" style="flex:1.5;">
+              <label>Tìm kiếm ngành</label>
+              <input type="text" id="searchInput" class="filter-input" placeholder="Nhập tên hoặc mã ngành..." oninput="onSearch()" />
+            </div>
+            <div class="filter-group">
+              <label>Lọc xu hướng</label>
+              <select id="trendFilter" class="filter-select" onchange="onTrendFilter()">
+                <option value="all">Tất cả xu hướng</option>
+                <option value="up">📈 Dự đoán tăng</option>
+                <option value="down">📉 Dự đoán giảm</option>
+                <option value="stable">📊 Ổn định</option>
+                <option value="hot">🔥 Các ngành hot</option>
+                <option value="eligible">✅ Vừa điểm của tôi</option>
+              </select>
+            </div>
+            <div class="filter-group" style="flex-direction:row;align-items:center;padding-bottom:10px;">
+              <span style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;">Tổ hợp:</span>
+              <div class="filter-chips">
+                <button class="chip chip-red" data-combo="all" onclick="setCombo('all')">Tất cả</button>
+                <button class="chip chip-outline" data-combo="A00" onclick="setCombo('A00')">A00/A01</button>
+                <button class="chip chip-outline" data-combo="D01" onclick="setCombo('D01')">D01/D07</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-header border-b">
+            <div>
+              <div class="card-title" id="tableMethodLabel">Phương thức: Đánh giá Tư duy (TSA)</div>
+              <div class="card-subtitle">Hiển thị <span id="majorCount" class="fw-900 text-red">0</span> ngành xét tuyển</div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="main-table">
+              <thead>
+                <tr>
+                  <th class="hide-mobile" style="width:36px;padding-left:16px;">#</th>
+                  <th>Mã - Tên ngành</th>
+                  <th class="center">ĐC 2025</th>
+                  <th class="center">Dự đoán 2026</th>
+                  <th class="center">Biến động</th>
+                  <th class="center">Độ hot</th>
+                  <th class="center" id="eligHead" style="display:none;">Khả năng đỗ</th>
+                </tr>
+              </thead>
+              <tbody id="majorBody">
+                <!-- JS populated -->
+              </tbody>
+            </table>
+          </div>
+          
+        </div>
+
+        <!-- SPECTRUM CHART -->
+        <div class="spectrum-section anim-fade-up" style="animation-delay:0.5s">
+          <div style="margin-bottom:20px;">
+            <div class="card-title">Phân tích phổ điểm TSA 2025 vs 2026</div>
+            <div class="card-subtitle">So sánh phân bố số lượng thí sinh theo dải điểm (Dự báo 2026)</div>
+          </div>
+          <div style="height:250px;position:relative;">
+            <canvas id="spectrumChart"></canvas>
+          </div>
+          <div class="spectrum-meta">
+            <div class="meta-card">
+              <div class="meta-lbl">Đỉnh phổ 2025</div>
+              <div class="meta-val">~54.5 điểm</div>
+              <div class="meta-sub">Tập trung lớn ở 50-60 điểm</div>
+            </div>
+            <div class="meta-card">
+              <div class="meta-lbl">Đỉnh phổ 2026 (Dự kiến)</div>
+              <div class="meta-val">~53.5 điểm</div>
+              <div class="meta-sub">Tổng số thí sinh tăng ~25%</div>
+            </div>
+            <div class="meta-card" style="background:#fff0f3;border-color:var(--pink-light);">
+              <div class="meta-lbl" style="color:var(--red);">Nhận định chung</div>
+              <div class="meta-val" style="color:var(--red-deep);font-size:14px;">Cạnh tranh gay gắt hơn ở đỉnh</div>
+              <div class="meta-sub">Phân bố điểm cao (>70) dày hơn</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: DETAIL PANEL -->
+      <div class="col-right">
+        <div id="detailPanel">
+          
+          <!-- Empty State -->
+          <div id="detailEmpty" class="detail-empty">
+            <div class="detail-empty-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" stroke-width="1.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/></svg>
+            </div>
+            <div class="card-title" style="margin-bottom:8px;">Chi tiết ngành</div>
+            <p>Vui lòng chọn một ngành ở danh sách bên trái để xem phân tích chi tiết dự đoán điểm chuẩn.</p>
+          </div>
+
+          <!-- Content State -->
+          <div id="detailContent" class="hidden">
+            
+            <div class="detail-header">
+              <button class="detail-close-btn" onclick="document.getElementById('detailPanel').classList.remove('show-mobile')">✕</button>
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <div id="dCode" class="detail-code">IT1 · A00</div>
+                  <div id="dName" class="detail-name">Khoa học Máy tính</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;">
+                  <div id="dHot" style="background:rgba(255,255,255,0.15);padding:4px 10px;border-radius:8px;margin-bottom:8px;font-size:12px;font-weight:700;"></div>
+                  <button id="addAspirationBtn" onclick="toggleCurrentAspiration()" style="background:#fff;color:var(--red);border:none;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.1);transition:transform 0.1s;">+ Thêm nguyện vọng xét tuyển</button>
+                </div>
+              </div>
+              <div id="dCombo" class="detail-combo" style="margin-top:12px;">Tổ hợp: A00 · Đánh giá Tư duy (TSA)</div>
+            </div>
+
+            <div class="detail-body">
+              
+              <!-- 25-26 Boxes -->
+              <div class="score-row">
+                <div class="score-box">
+                  <div class="score-box-lbl">Chuẩn 2025</div>
+                  <div id="d25" class="score-box-val">0</div>
+                </div>
+                <div class="score-box pred">
+                  <div class="score-box-lbl" style="color:var(--red);">Dự đoán 2026</div>
+                  <div id="d26" class="score-box-val">0</div>
+                </div>
+              </div>
+
+              <!-- Change Indicator -->
+              <div id="dChangeBox" class="change-box">
+                <div id="dChangeIcon" class="change-icon">📈</div>
+                <div style="flex:1;">
+                  <div id="dChangeTxt" class="change-label text-green">Dự đoán tăng điểm</div>
+                  <div id="dChangeAmt" class="change-amount">+1.50 điểm so với 2025 · Thang 100</div>
+                </div>
+                <div id="dUserElig" class="diff-badge user-eligible" style="display:none;font-size:12px;padding:4px 10px;">✅ Có thể đỗ</div>
+              </div>
+
+              <!-- Methods Comparison -->
+              <div>
+                <div class="section-label">📌 ĐIỂM CÁC PHƯƠNG THỨC KHÁC</div>
+                <table style="width:100%;border-collapse:collapse;border:1px solid #ffdde5;border-radius:8px;overflow:hidden;">
+                  <thead>
+                    <tr style="background:#fff0f3;">
+                      <th style="text-align:left;padding:8px 10px;font-size:11px;color:var(--red);">Phương thức</th>
+                      <th style="text-align:center;padding:8px;font-size:11px;color:var(--red);">2025</th>
+                      <th style="text-align:center;padding:8px;font-size:11px;color:var(--red);">Dự báo 26</th>
+                      <th style="text-align:center;padding:8px;font-size:11px;color:var(--red);">Biến động</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dMethodsTable">
+                    <!-- generated -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Chart -->
+              <div>
+                <div class="section-label">📈 XU HƯỚNG ĐIỂM CHUẨN</div>
+                <div class="mini-chart-wrap">
+                  <canvas id="miniChart"></canvas>
+                </div>
+              </div>
+
+              <!-- Hot factors -->
+              <div>
+                <div class="section-label">🔥 PHÂN TÍCH ĐỘ HOT</div>
+                <div id="dHotFactors"></div>
+              </div>
+
+              <!-- Reason -->
+              <div>
+                <div class="section-label">💡 LÝ DO DỰ ĐOÁN</div>
+                <div id="dReason" class="reason-box"></div>
+                <div id="dSpecNote" class="spec-note"></div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- POPUP INFO -->
+  <div class="popup-overlay" id="infoPopup">
+    <div class="popup-box">
+      <button class="popup-close" onclick="document.getElementById('infoPopup').classList.remove('show')">✕</button>
+      <div class="popup-emoji">🎯</div>
+      <div class="popup-title">Về công cụ dự đoán</div>
+      <div class="popup-body">
+        <p>Thuật toán dự đoán điểm chuẩn Đại học Bách Khoa Hà Nội (BKHN) năm 2026 được xây dựng dựa trên:</p>
+        <ul>
+          <li><strong>Biến động phổ điểm:</strong> Phân tích phổ điểm thi đánh giá tư duy (TSA), điểm thi THPT quốc gia và các kỳ thi ĐGNL năm 2025 và dự kiến 2026.</li>
+          <li><strong>Xu hướng điểm 3 năm gần nhất:</strong> Phân tích tốc độ tăng/giảm của các ngành từ 2023-2025.</li>
+          <li><strong>Độ hot của ngành:</strong> Chấm điểm (1-100) dựa trên nhu cầu thị trường lao động, xu hướng AI/Bán dẫn, và tỷ lệ chọi các năm trước.</li>
+        </ul>
+        <div class="popup-warn">
+          ⚠ Lưu ý: Số liệu chỉ mang tính chất tham khảo định hướng, không phải điểm chuẩn chính thức. Thí sinh nên sử dụng để xây dựng chiến lược đặt nguyện vọng an toàn.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 Dự đoán điểm chuẩn BKHN. 
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <!-- CUSTOM SHARE MODAL -->
+  <div id="shareModal" class="share-modal-overlay hidden">
+    <div class="share-modal-content anim-fade-up">
+      <div class="share-modal-header">
+        <h3 style="margin:0;font-size:18px;color:var(--red);">Tạo link chia sẻ</h3>
+        <button onclick="closeShareModal()" style="background:none;border:none;font-size:24px;line-height:1;cursor:pointer;color:var(--gray-400);">&times;</button>
+      </div>
+      <div class="share-modal-body" style="padding: 20px 0;">
+        <label style="display:block;margin-bottom:8px;font-size:13px;font-weight:600;color:var(--gray-600);">Nhập tên của bạn (không bắt buộc):</label>
+        <input type="text" id="shareNameInput" placeholder="Ví dụ: Nguyễn Văn A" style="width:100%;padding:12px 16px;border:1.5px solid var(--pink-pale);border-radius:10px;font-size:15px;box-sizing:border-box;outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--pink-pale)'">
+      </div>
+      <div class="share-modal-footer" style="display:flex;justify-content:flex-end;gap:12px;">
+        <button onclick="closeShareModal()" style="padding:10px 20px;background:#f4f4f5;color:#3f3f46;border:none;border-radius:10px;font-weight:700;cursor:pointer;">Hủy</button>
+        <button id="copyLinkBtn" onclick="executeShare()" style="padding:10px 20px;background:var(--red);color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;">Tạo & Copy Link</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
