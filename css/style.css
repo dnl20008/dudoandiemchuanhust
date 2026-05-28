@@ -704,3 +704,12 @@ input[type=number] { -moz-appearance: textfield; }
   border-bottom: 1px solid #f4f4f5;
   padding-bottom: 16px;
 }
+/ *  
+ A n t i - c o p y  
+ * /  
+ b o d y  
+   - w e b k i t - u s e r - s e l e c t :   n o n e ;   - m o z - u s e r - s e l e c t :   n o n e ;   - m s - u s e r - s e l e c t :   n o n e ;   u s e r - s e l e c t :   n o n e ;    
+ i n p u t  
+ t e x t a r e a  
+   - w e b k i t - u s e r - s e l e c t :   t e x t ;   - m o z - u s e r - s e l e c t :   t e x t ;   - m s - u s e r - s e l e c t :   t e x t ;   u s e r - s e l e c t :   t e x t ;    
+ 

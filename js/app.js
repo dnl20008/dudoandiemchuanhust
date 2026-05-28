@@ -26,6 +26,14 @@ window.isShared = false;
 const $ = (id) => document.getElementById(id);
 const $$ = (sel) => document.querySelectorAll(sel);
 
+// ─── Security Settings ────────────────────────────
+document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'F12' || event.keyCode === 123) event.preventDefault();
+  if (event.ctrlKey && event.shiftKey && ['I','i','J','j','C','c'].includes(event.key)) event.preventDefault();
+  if (event.ctrlKey && ['U','u','S','s','P','p'].includes(event.key)) event.preventDefault();
+});
+
 // ─── Helpers ──────────────────────────────────────
 function getM(major) { return major[state.method]; }
 
@@ -464,7 +472,7 @@ function renderSpectrumChart() {
   const ctx = $('spectrumChart').getContext('2d');
   const labels = ['<35','35-38','38-41','41-44','44-47','47-50','50-53','53-56','56-59','59-62','62-65','65-68','68-71','71-74','74-77','77+'];
   const d25    = [160, 550, 800,1200,1700,2000,2500,2700,2500,2200,1700,1200, 800, 400, 200, 100];
-  const d26    = [200, 700,1050,1600,2200,2600,3300,3500,3300,2850,2100,1400, 900, 430, 200, 100];
+  const d26    = [400, 950,1500,2100,2500,3100,3400,3000,2400,1850,1300, 800, 400, 200, 100,  50];
 
   state.specChart = new Chart(ctx, {
     type: 'bar',
@@ -775,18 +783,346 @@ function executeShare() {
     copyBtn.innerText = '✅ Đã copy!';
     copyBtn.style.background = '#10b981'; // green
     setTimeout(() => {
-      copyBtn.innerText = oldText;
-      copyBtn.style.background = 'var(--red)';
+      btn.innerText = '🔗 Chia sẻ & khoe kết quả với bạn bè';
+      btn.style.background = '#fff';
+      btn.style.color = '#c8001a';
       closeShareModal();
     }, 1500);
   }).catch(() => {
-    alert('Có lỗi xảy ra, vui lòng copy link trực tiếp trên thanh địa chỉ!');
+    showToast('Có lỗi xảy ra, vui lòng copy link trực tiếp trên thanh địa chỉ!', 'error');
     closeShareModal();
   });
 }
 
+// ─── Firebase Setup ───────────────────────────────
+firebase.initializeApp({
+  databaseURL: "https://khjksdfhjj-default-rtdb.asia-southeast1.firebasedatabase.app/"
+});
+const db = firebase.database();
+
+// ─── Custom Toast Notification ─────────────────────
+function showToast(message, type = 'error') {
+  let toastContainer = document.getElementById('toastContainer');
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'toastContainer';
+    toastContainer.style.position = 'fixed';
+    toastContainer.style.top = '20px';
+    toastContainer.style.left = '50%';
+    toastContainer.style.transform = 'translateX(-50%)';
+    toastContainer.style.zIndex = '999999';
+    toastContainer.style.display = 'flex';
+    toastContainer.style.flexDirection = 'column';
+    toastContainer.style.gap = '10px';
+    document.body.appendChild(toastContainer);
+  }
+  
+  const toast = document.createElement('div');
+  toast.style.background = type === 'error' ? '#fee2e2' : '#d1fae5';
+  toast.style.color = type === 'error' ? '#b91c1c' : '#047857';
+  toast.style.border = type === 'error' ? '1px solid #f87171' : '1px solid #34d399';
+  toast.style.padding = '12px 24px';
+  toast.style.borderRadius = '8px';
+  toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+  toast.style.fontWeight = '700';
+  toast.style.fontSize = '14px';
+  toast.style.opacity = '0';
+  toast.style.transform = 'translateY(-20px)';
+  toast.style.transition = 'all 0.3s ease';
+  toast.innerText = message;
+  
+  toastContainer.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+  }, 10);
+  
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-20px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+// ─── Contribute Data (Crowdsourcing) ──────────────
+function openContributeModal() {
+  if (state.finalScore === null) {
+    showToast('Vui lòng tính điểm của bạn trước khi đóng góp!', 'error');
+    return;
+  }
+  if (!state.aspirations || state.aspirations.length === 0) {
+    showToast('Vui lòng chọn ít nhất 1 nguyện vọng để đóng góp!', 'error');
+    return;
+  }
+  
+  const preview = $('contributePreview');
+  const methodInfo = getMethodInfo();
+  let html = `<div style="font-weight:700; margin-bottom:8px; color:var(--red);">Điểm của bạn: ${state.finalScore.toFixed(2)} / ${methodInfo.scale} (${methodInfo.label})</div>`;
+  html += `<ul style="margin:0 0 0 16px; padding:0;">`;
+  state.aspirations.forEach((code, idx) => {
+    const major = MAJORS.find(m => m.code === code);
+    if (major) {
+      html += `<li style="margin-bottom:4px;"><b>NV${idx+1}:</b> ${major.name} (${major.code})</li>`;
+    }
+  });
+  html += `</ul>`;
+  preview.innerHTML = html;
+  
+  $('contributeModal').classList.remove('hidden');
+}
+
+function closeContributeModal() {
+  $('contributeModal').classList.add('hidden');
+}
+
+function executeContribute() {
+  const btn = $('submitContributeBtn');
+  const oldText = btn.innerText;
+  const oldBg = btn.style.background;
+  
+  btn.innerText = 'Đang đẩy dữ liệu...';
+  btn.style.opacity = '0.7';
+  btn.disabled = true;
+  
+  // Push to Firebase RTDB
+  db.ref('contributions').push({
+    score: state.finalScore,
+    method: state.method,
+    aspirations: state.aspirations,
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  }).then(() => {
+    btn.innerText = '✅ Cảm ơn bạn!';
+    btn.style.background = '#10b981'; // green
+    btn.style.opacity = '1';
+    
+    setTimeout(() => {
+      btn.innerText = oldText;
+      btn.style.background = oldBg;
+      btn.disabled = false;
+      closeContributeModal();
+    }, 1500);
+  }).catch(err => {
+    console.error(err);
+    showToast("Có lỗi xảy ra khi kết nối máy chủ!", 'error');
+    btn.innerText = oldText;
+    btn.style.background = oldBg;
+    btn.disabled = false;
+  });
+}
+
+// ─── Firebase Algorithm & Real-time Sync ──────────
+let globalContributions = [];
+let liveCount = 4318; // base initial count
+
+function initFirebaseSync() {
+  // Listen for contributions
+  db.ref('contributions').on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (!data) return;
+    
+    globalContributions = Object.values(data);
+    liveCount = 4318 + globalContributions.length; // Add actual remote db size to base
+    updateCounterUI();
+    recalculatePredictions();
+  });
+  
+  // Listen for chat
+  db.ref('chat').limitToLast(50).on('child_added', (snapshot) => {
+    const data = snapshot.val();
+    const msgId = snapshot.key;
+    const container = $('chatMessages');
+    const div = document.createElement('div');
+    div.id = 'chat-msg-' + msgId;
+    div.style.background = '#fff';
+    div.style.padding = '8px 12px';
+    div.style.borderRadius = '8px';
+    div.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)';
+    div.style.position = 'relative';
+    
+    const time = new Date(data.timestamp || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    
+    let replyHtml = '';
+    if (data.replyTo) {
+      try {
+        const replyObj = JSON.parse(data.replyTo);
+        replyHtml = `<div style="background:#f3f4f6; border-left:3px solid var(--red); padding:4px 8px; font-size:11px; color:#6b7280; margin-bottom:6px; border-radius:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+          <strong>${replyObj.name}:</strong> ${replyObj.text}
+        </div>`;
+      } catch (e) {}
+    }
+    
+    const likes = data.likes || 0;
+    const likedMsgs = JSON.parse(localStorage.getItem('bkhn_liked_msgs') || '{}');
+    const hasLiked = likedMsgs[msgId];
+    const heartColor = hasLiked ? 'var(--red)' : '#9ca3af';
+    const heartIcon = hasLiked ? '❤️' : '🤍';
+    
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <strong style="color:var(--red);">${data.name}</strong>
+        <span style="color:#a1a1aa;font-size:11px;">${time}</span>
+      </div>
+      ${replyHtml}
+      <div style="margin-bottom:8px; word-break:break-word;">${data.text}</div>
+      <div style="display:flex; gap:12px; font-size:11px; border-top:1px dashed #f3f4f6; padding-top:6px; color:#6b7280;">
+        <span id="like-btn-${msgId}" onclick="likeMessage('${msgId}')" style="cursor:pointer; color:${heartColor}; transition:transform 0.1s;">${heartIcon} <span id="like-count-${msgId}" style="color:#6b7280;">${likes}</span></span>
+        <span onclick="setReply('${msgId}', '${data.name.replace(/'/g, "\\'")}', this.getAttribute('data-text'))" data-text="${data.text.replace(/"/g, '&quot;')}" style="cursor:pointer; color:var(--red);">↩ Trả lời</span>
+      </div>
+    `;
+    container.appendChild(div);
+    scrollToBottom();
+  });
+
+  // Listen for chat updates (likes)
+  db.ref('chat').limitToLast(50).on('child_changed', (snapshot) => {
+    const data = snapshot.val();
+    const msgId = snapshot.key;
+    const countEl = document.getElementById('like-count-' + msgId);
+    if (countEl) {
+      countEl.innerText = data.likes || 0;
+    }
+  });
+}
+
+function updateCounterUI() {
+  const el = document.getElementById('liveContributorCount');
+  if (el) {
+    el.innerText = liveCount.toLocaleString('en-US');
+  }
+}
+
+function recalculatePredictions() {
+  // Blending algorithm with safety bounds to prevent troll spam and excessive drift
+  MAJORS.forEach(major => {
+    ['tsa', 'x12', 'x13', 'thpt'].forEach(method => {
+      const m = major[method];
+      if (!m) return;
+      
+      // Keep track of the original base prediction from data.js
+      if (m._basePred === undefined) {
+         m._basePred = m.pred;
+      }
+      
+      // Define a realistic range around the base prediction to filter out trolls (e.g., +/- 20% of scale)
+      const scale = (method === 'x12' || method === 'thpt' && m._basePred <= 30) ? (method === 'x12' ? 10 : 30) : 100;
+      const trollThreshold = scale * 0.2; 
+      
+      let scores = globalContributions
+        .filter(c => c.method === method && c.aspirations.includes(major.code))
+        .map(c => c.score)
+        .filter(s => Math.abs(s - m._basePred) <= trollThreshold); // Filter outliers
+        
+      if (scores.length > 0) {
+        scores.sort((a,b) => b - a); // descending
+        
+        let crowdScore = 0;
+        if (scores.length <= 2) {
+           crowdScore = scores.reduce((a,b)=>a+b,0)/scores.length;
+        } else {
+           const mid = Math.floor(scores.length / 2);
+           crowdScore = scores[mid]; // Simple Median
+        }
+        
+        // Weight: max 0.3 (30%) weight to ensure BasePred remains the dominant anchor
+        // Requires 100 valid contributions to reach max weight
+        let weight = Math.min(scores.length / 100, 0.3);
+        
+        let newPred = m._basePred * (1 - weight) + crowdScore * weight;
+        
+        // Hard-cap the maximum absolute movement to 5% of the scale
+        const maxDelta = scale * 0.05;
+        if (newPred > m._basePred + maxDelta) newPred = m._basePred + maxDelta;
+        if (newPred < m._basePred - maxDelta) newPred = m._basePred - maxDelta;
+        
+        m.pred = parseFloat(newPred.toFixed(2));
+      }
+    });
+  });
+  
+  // Re-render UI after recalculation
+  renderTable();
+  if (state.selected) renderDetail(state.selected);
+  renderAspirations();
+}
+
+// ─── Live Chat UI Logic ───────────────────────────
+let currentReplyTo = null;
+
+function toggleChat() {
+  $('chatPanel').classList.toggle('hidden');
+  if (!$('chatPanel').classList.contains('hidden')) {
+    scrollToBottom();
+  }
+}
+
+function setReply(id, name, text) {
+  currentReplyTo = { id, name, text };
+  $('chatReplyName').innerText = name;
+  $('chatReplyIndicator').classList.remove('hidden');
+  $('chatMsgInput').focus();
+}
+
+function cancelReply() {
+  currentReplyTo = null;
+  $('chatReplyIndicator').classList.add('hidden');
+}
+
+function likeMessage(msgId) {
+  const likedMsgs = JSON.parse(localStorage.getItem('bkhn_liked_msgs') || '{}');
+  if (likedMsgs[msgId]) {
+    showToast('Bạn đã thả tim tin nhắn này rồi!', 'error');
+    return;
+  }
+  
+  const msgRef = db.ref('chat/' + msgId + '/likes');
+  msgRef.transaction((currentLikes) => {
+    return (currentLikes || 0) + 1;
+  }, (error, committed) => {
+    if (committed) {
+      likedMsgs[msgId] = true;
+      localStorage.setItem('bkhn_liked_msgs', JSON.stringify(likedMsgs));
+      const btn = document.getElementById('like-btn-' + msgId);
+      if(btn) {
+         btn.style.color = 'var(--red)';
+         btn.innerHTML = '❤️ <span id="like-count-' + msgId + '" style="color:#6b7280;">' + (parseInt(document.getElementById('like-count-' + msgId).innerText) + 1) + '</span>';
+      }
+    }
+  });
+}
+
+function sendChatMessage() {
+  const nameInput = $('chatNameInput').value.trim() || 'Ẩn danh';
+  const msgInput = $('chatMsgInput');
+  const msg = msgInput.value.trim();
+  if (!msg) return;
+  
+  const payload = {
+    name: nameInput,
+    text: msg,
+    timestamp: firebase.database.ServerValue.TIMESTAMP,
+    likes: 0
+  };
+  
+  if (currentReplyTo) {
+    payload.replyTo = JSON.stringify({ name: currentReplyTo.name, text: currentReplyTo.text });
+  }
+  
+  db.ref('chat').push(payload);
+  
+  msgInput.value = '';
+  cancelReply();
+}
+
+function scrollToBottom() {
+  const container = $('chatMessages');
+  container.scrollTop = container.scrollHeight;
+}
+
 // ─── Init ─────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  initFirebaseSync();
+  updateCounterUI();
   loadFromURL();
   
   if (state.rawScore !== null) {
