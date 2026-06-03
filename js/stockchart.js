@@ -204,10 +204,10 @@
           var ampHigh  = cd.high;
           var ampLow   = cd.low;
           // Đảm bảo có thân nến tối thiểu
-          if (Math.abs(ampClose - ampOpen) < 0.15) {
-            ampClose = ampOpen + (isUp ? 0.15 : -0.15);
-            ampHigh  = Math.max(ampClose, ampOpen) + 0.1;
-            ampLow   = Math.min(ampClose, ampOpen) - 0.1;
+          if (Math.abs(ampClose - ampOpen) < 0.25) {
+            ampClose = ampOpen + (isUp ? 0.25 : -0.25);
+            ampHigh  = Math.max(ampClose, ampOpen) + 0.15;
+            ampLow   = Math.min(ampClose, ampOpen) - 0.15;
           }
 
           var yOpen  = yS.getPixelForValue(ampOpen);
@@ -217,8 +217,8 @@
 
           var top    = Math.min(yOpen, yClose);
           var bot    = Math.max(yOpen, yClose);
-          var bodyH  = Math.max(bot - top, 4);
-          var bodyW  = Math.min(Math.max(bar.width * 0.7, 10), 28);
+          var bodyH  = Math.max(bot - top, 6);
+          var bodyW  = Math.min(Math.max(bar.width * 0.85, 14), 32);
 
           // ── Glow shadow ───────────────────────────
           c2.shadowColor = glow;
@@ -249,39 +249,6 @@
           c2.strokeStyle = isUp ? 'rgba(52,211,153,0.6)' : 'rgba(252,165,165,0.5)';
           c2.lineWidth = 0.8;
           rr(c2, x - bodyW/2, top, bodyW, bodyH, 4); c2.stroke();
-
-          // ── Nhãn delta + thời gian ────────────────────────────
-          var txt = (cd.delta >= 0 ? '+' : '') + fmt(cd.delta);
-          var timeTxt = cd.ts ? fmtTime(cd.ts) : '';
-          c2.shadowBlur = 0;
-          c2.font = 'bold 9px "Be Vietnam Pro",sans-serif';
-          var tw = c2.measureText(txt).width;
-          // Nếu có thời gian, hiển thị trên 2 dòng
-          var lw, lh;
-          if (timeTxt) {
-            var tw2 = c2.measureText(timeTxt).width;
-            lw = Math.max(tw, tw2) + 10;
-            lh = 26;
-          } else {
-            lw = tw + 8; lh = 15;
-          }
-          var lx = x - lw/2, ly = yHigh - lh - 5;
-
-          c2.fillStyle = isUp ? 'rgba(220,252,231,0.95)' : 'rgba(254,226,226,0.95)';
-          rr(c2, lx, ly, lw, lh, 4); c2.fill();
-          c2.strokeStyle = col; c2.lineWidth = 1;
-          rr(c2, lx, ly, lw, lh, 4); c2.stroke();
-          c2.fillStyle = col;
-          c2.textAlign = 'center'; c2.textBaseline = 'middle';
-          if (timeTxt) {
-            c2.fillText(txt, x, ly + 8);
-            c2.font = '8px "Be Vietnam Pro",sans-serif';
-            c2.fillStyle = isUp ? 'rgba(6,95,70,0.75)' : 'rgba(127,29,29,0.75)';
-            c2.fillText(timeTxt, x, ly + 19);
-          } else {
-            c2.fillText(txt, x, ly + lh/2);
-          }
-
 
         });
         c2.restore();
@@ -314,7 +281,7 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { top: 36, bottom: 12, left: 6, right: 6 } },
+        layout: { padding: { top: 16, bottom: 12, left: 6, right: 6 } },
         animation: { duration: 450, easing: 'easeOutCubic' },
         plugins: {
           legend: { display: false },
@@ -773,7 +740,7 @@
         '#scStatsRow > div > div:last-child { font-size:14px !important; }',
       '}',
       '@media(max-width:480px) {',
-        '#scCanvas { height:200px !important }',
+        '#scCanvas { height:260px !important }',
         '#scPanelBox { font-size:12px; }',
         // Header
         '#scPanelBox [style*="font-size:16px"] { font-size:14px !important; }',
