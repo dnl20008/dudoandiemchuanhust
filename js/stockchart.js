@@ -81,12 +81,15 @@
         var y25 = parseFloat(mData.y25);
         var pred = parseFloat(mData.pred);
         var change = parseFloat((pred - y25).toFixed(2));
+        var ampChange = change * AMPLIFY;
+        var ampClose = y25 + ampChange;
+        var minVisual = Math.max(Math.abs(ampChange), 1.5);
         
         candleMap[m.code] = {
           code: m.code, name: m.name,
           open: y25, close: pred,
-          high: Math.max(y25, pred) + Math.abs(change) * 0.2 + 0.05,
-          low: Math.min(y25, pred) - Math.abs(change) * 0.2 - 0.05,
+          high: Math.max(y25, ampClose) + minVisual * 0.3 + 0.1,
+          low: Math.min(y25, ampClose) - minVisual * 0.3 - 0.1,
           prevDelta: change, currDelta: change,
           diff: 0,
           delta: change, ts: null
@@ -105,14 +108,17 @@
       var change = parseFloat((pred - y25).toFixed(2));
       var prevDelta = (prevSnapshot[code] !== undefined) ? prevSnapshot[code] : change;
       var diff = parseFloat((change - prevDelta).toFixed(2));
+      var ampChange = change * AMPLIFY;
+      var ampClose = y25 + ampChange;
+      var minVisual = Math.max(Math.abs(ampChange), 1.5);
       
       candleMap[code] = {
         code:      code,
         name:      m.name,
         open:      y25,
         close:     pred,
-        high:      Math.max(y25, pred) + Math.abs(change) * 0.2 + 0.05,
-        low:       Math.min(y25, pred) - Math.abs(change) * 0.2 - 0.05,
+        high:      Math.max(y25, ampClose) + minVisual * 0.3 + 0.1,
+        low:       Math.min(y25, ampClose) - minVisual * 0.3 - 0.1,
         prevDelta: prevDelta,
         currDelta: change,
         diff:      diff,
@@ -179,6 +185,9 @@
     codes = codes.slice(0, 18);
     var candles = codes.map(function(c) { return candleMap[c]; });
 
+    var minY = Math.max(0, Math.min.apply(null, candles.map(function(c) { return c.low; })) - 0.1);
+    var maxY = Math.max.apply(null, candles.map(function(c) { return c.high; })) + 0.1;
+
     if (mainChart) { mainChart.destroy(); mainChart = null; }
     var ctx = canvas.getContext('2d');
 
@@ -198,16 +207,19 @@
           var col  = isUp ? '#10b981' : '#ef4444';
           var glow = isUp ? 'rgba(16,185,129,0.35)' : 'rgba(239,68,68,0.35)';
 
-          // Không phóng đại vì nến thể hiện điểm thực tế (Chuẩn 2025 -> Dự báo 2026)
+          var ampChange = (cd.close - cd.open) * AMPLIFY;
           var ampOpen  = cd.open;
-          var ampClose = cd.close;
-          var ampHigh  = cd.high;
-          var ampLow   = cd.low;
+          var ampClose = cd.open + ampChange;
+          
+          var minVisual = Math.max(Math.abs(ampChange), 1.5);
+          var ampHigh  = Math.max(ampOpen, ampClose) + minVisual * 0.3 + 0.1;
+          var ampLow   = Math.min(ampOpen, ampClose) - minVisual * 0.3 - 0.1;
+
           // Đảm bảo có thân nến tối thiểu
-          if (Math.abs(ampClose - ampOpen) < 0.25) {
-            ampClose = ampOpen + (isUp ? 0.25 : -0.25);
-            ampHigh  = Math.max(ampClose, ampOpen) + 0.15;
-            ampLow   = Math.min(ampClose, ampOpen) - 0.15;
+          if (Math.abs(ampClose - ampOpen) < 1.5) {
+            ampClose = ampOpen + (isUp ? 1.5 : -1.5);
+            ampHigh  = Math.max(ampClose, ampOpen) + 0.6;
+            ampLow   = Math.min(ampClose, ampOpen) - 0.6;
           }
 
           var yOpen  = yS.getPixelForValue(ampOpen);
@@ -217,7 +229,7 @@
 
           var top    = Math.min(yOpen, yClose);
           var bot    = Math.max(yOpen, yClose);
-          var bodyH  = Math.max(bot - top, 6);
+          var bodyH  = Math.max(bot - top, 20);
           var bodyW  = Math.min(Math.max(bar.width * 0.85, 14), 32);
 
           // ── Glow shadow ───────────────────────────
@@ -326,12 +338,15 @@
           x: {
             grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
             ticks: {
+              display: window.innerWidth > 768,
               color: 'rgba(255,255,255,0.5)',
               font: { family: '"Be Vietnam Pro",sans-serif', size: 9 },
               maxRotation: 30, minRotation: 0
             }
           },
           y: {
+            min: minY,
+            max: maxY,
             grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
             ticks: {
               color: 'rgba(255,255,255,0.45)',
