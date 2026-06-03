@@ -937,6 +937,16 @@ function openContributeModal() {
   html += `</ul>`;
   preview.innerHTML = html;
   
+  // Đảm bảo nút submit luôn ở trạng thái enabled khi mở modal lần đầu hợp lệ
+  const submitBtn = $('submitContributeBtn');
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.style.opacity = '1';
+    submitBtn.style.cursor = 'pointer';
+    submitBtn.innerText = 'Gửi đóng góp';
+    submitBtn.setAttribute('onclick', 'executeContribute()');
+  }
+
   $('contributeModal').classList.remove('hidden');
 }
 
@@ -998,30 +1008,52 @@ async function executeContribute() {
     console.warn('spam_guard read failed (possible Rules config issue):', err.message);
   }
 
+  // ── Bước 1: Ghi spam_guard TRƯỚC bằng transaction (atomic) ──
+  // Transaction chỉ thành công nếu key CHƯ A tồn tại → đảm bảo mỗi người chỉ gửi được 1 lần
+  try {
+    await new Promise((resolve, reject) => {
+      spamRef.transaction(
+        (currentData) => {
+          if (currentData !== null) {
+            return undefined; // Đã tồn tại → ABORT transaction
+          }
+          return { ts: Date.now(), fp: fp }; // Chưa tồn tại → đặt giá trị mới
+        },
+        (error, committed) => {
+          if (error) reject(error);
+          else if (!committed) reject(new Error('ALREADY_CONTRIBUTED'));
+          else resolve();
+        }
+      );
+    });
+  } catch (txErr) {
+    if (txErr.message === 'ALREADY_CONTRIBUTED') {
+      markContributedLocally();
+      showToast('⚠️ Mỗi người chỉ được đóng góp 1 lần để đảm bảo tính chính xác. Cảm ơn bạn!', 'error');
+      disableContributeButton();
+      closeContributeModal();
+      return;
+    }
+    // Lỗi mạng / Rules → vẫn cho phép tiếp tục (fail-open) để không block người dùng hợp lệ
+    console.warn('spam_guard transaction failed, proceeding anyway:', txErr.message);
+  }
+
   btn.innerText = 'Đang đẩy dữ liệu...';
 
-  // ── Bước 1: Ghi contribution ──
+  // ── Bước 2: Ghi contribution (chỉ chạy sau khi spam_guard đã được đánh dấu) ──
   db.ref('contributions').push({
     score: state.finalScore,
     method: state.method,
     aspirations: state.aspirations,
-    fp: fp, // lưu fingerprint để phân tích
+    fp: fp,
     timestamp: firebase.database.ServerValue.TIMESTAMP
   })
     .then(() => {
-      // ── Bước 2: Ghi spam_guard ──
-      db.ref('spam_guard/' + spamKey).set({
-        ts: firebase.database.ServerValue.TIMESTAMP
-      }).catch(err => {
-        console.warn('spam_guard write blocked (check Firebase Rules):', err.message);
-      });
-
       markContributedLocally();
       btn.innerText = '✅ Cảm ơn bạn đã đóng góp!';
       btn.style.background = '#10b981';
       btn.style.color = '#fff';
       btn.style.opacity = '1';
-      // KHÔNG re-enable button — khóa vĩnh viễn trong session này
       setTimeout(() => {
         disableContributeButton();
         closeContributeModal();
@@ -1029,7 +1061,6 @@ async function executeContribute() {
     })
     .catch(err => {
       console.error(err);
-      // Gửi thất bại → reset flag để cho phép thử lại
       _sessionContributed = false;
       showToast('Có lỗi xảy ra khi kết nối máy chủ! Vui lòng thử lại.', 'error');
       btn.innerText = oldText;
@@ -1041,16 +1072,25 @@ async function executeContribute() {
 
 /** Vô hiệu hóa nút đóng góp vĩnh viễn trong session này */
 function disableContributeButton() {
-  // Ẩn tất cả các nút mở modal đóng góp
-  const btns = document.querySelectorAll('[onclick="openContributeModal()"], [data-contribute]');
-  btns.forEach(b => {
+  // 1) Vô hiệu hóa tất cả các nút mở modal đóng góp
+  const openBtns = document.querySelectorAll('[onclick="openContributeModal()"], [data-contribute]');
+  openBtns.forEach(b => {
     b.disabled = true;
     b.style.opacity = '0.5';
     b.style.cursor = 'not-allowed';
     b.title = 'Bạn đã đóng góp rồi!';
-    // Xóa onclick để không thể gọi lại
     b.setAttribute('onclick', 'showToast(\'⚠️ Bạn đã đóng góp rồi! Cảm ơn bạn.\', \'error\')');
   });
+
+  // 2) Vô hiệu hóa luôn nút "Gửi đóng góp" bên trong modal (selector cũ bỏ sót cái này!)
+  const submitBtn = document.getElementById('submitContributeBtn');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.5';
+    submitBtn.style.cursor = 'not-allowed';
+    submitBtn.title = 'Bạn đã đóng góp rồi!';
+    submitBtn.setAttribute('onclick', 'showToast(\'⚠️ Bạn đã đóng góp rồi! Cảm ơn bạn.\', \'error\')');
+  }
 }
 
 // ─── Firebase Algorithm & Real-time Sync ──────────
