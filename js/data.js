@@ -15,8 +15,8 @@ const METHODS = [
   },
   {
     key: 'x12', label: 'XTTN 1.2', fullLabel: 'Xét tuyển Chứng chỉ Quốc tế',
-    icon: '🏛', scale: 10, unit: 'điểm', min: 0, max: 10, step: 0.1,
-    placeholder: 'VD: 9.5', hint: 'Thang điểm 10 (Quy đổi)'
+    icon: '🏛', scale: 100, unit: 'điểm', min: 0, max: 100, step: 0.1,
+    placeholder: 'VD: 85.5', hint: 'Thang điểm 100 (ĐGNL HN)'
   },
   {
     key: 'x13', label: 'XTTN 1.3', fullLabel: 'Xét tuyển Hồ sơ Năng lực',

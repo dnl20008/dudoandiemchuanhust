@@ -845,7 +845,61 @@ function showToast(message, type = 'error') {
   }, 3000);
 }
 
-// ─── Contribute Data (Crowdsourcing) ──────────────
+// ─── Anti-Spam: Contribute Data (Crowdsourcing) ───
+// Mỗi thiết bị/IP chỉ được đóng góp 1 lần duy nhất.
+// Lớp 0: RAM flag     → chặn ngay trong session (không thể bypass)
+// Lớp 1: localStorage → chặn trên cùng trình duyệt
+// Lớp 2: Firebase     → lưu fingerprint IP, kiểm tra chéo
+const CONTRIBUTED_KEY = 'bkhn_contributed_v1';
+let _sessionContributed = false; // In-memory, reset khi F5 nhưng không thể bypass trong session
+
+/** Sinh fingerprint nhẹ từ trình duyệt (không cần thư viện) */
+function getBrowserFingerprint() {
+  const raw = [
+    navigator.userAgent,
+    navigator.language,
+    screen.width + 'x' + screen.height,
+    new Date().getTimezoneOffset(),
+    navigator.hardwareConcurrency || '',
+    navigator.platform || ''
+  ].join('|');
+  // djb2 hash
+  let hash = 5381;
+  for (let i = 0; i < raw.length; i++) {
+    hash = ((hash << 5) + hash) ^ raw.charCodeAt(i);
+    hash = hash >>> 0; // keep unsigned 32-bit
+  }
+  return hash.toString(16);
+}
+
+/** Lấy IP thật qua API công cộng (fallback nếu lỗi) */
+async function getClientIP() {
+  try {
+    const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(4000) });
+    const json = await res.json();
+    return json.ip || 'unknown';
+  } catch {
+    return 'unknown';
+  }
+}
+
+/** Tạo key định danh kết hợp IP + fingerprint */
+function makeSpamKey(ip, fp) {
+  // Chuyển IP thành dạng an toàn để dùng làm Firebase path
+  const safeIp = ip.replace(/\./g, '_').replace(/:/g, '_');
+  return safeIp + '_' + fp;
+}
+
+/** Kiểm tra localStorage: đã đóng góp chưa? */
+function hasContributedLocally() {
+  return localStorage.getItem(CONTRIBUTED_KEY) === '1';
+}
+
+/** Đánh dấu đã đóng góp vào localStorage */
+function markContributedLocally() {
+  localStorage.setItem(CONTRIBUTED_KEY, '1');
+}
+
 function openContributeModal() {
   if (state.finalScore === null) {
     showToast('Vui lòng tính điểm của bạn trước khi đóng góp!', 'error');
@@ -853,6 +907,20 @@ function openContributeModal() {
   }
   if (!state.aspirations || state.aspirations.length === 0) {
     showToast('Vui lòng chọn ít nhất 1 nguyện vọng để đóng góp!', 'error');
+    return;
+  }
+
+  // ── Lớp 0: kiểm tra RAM flag (không thể bypass trong session) ──
+  if (_sessionContributed) {
+    showToast('⚠️ Bạn đã đóng góp trong phiên này rồi! Cảm ơn bạn!', 'error');
+    return;
+  }
+
+  // ── Lớp 1: kiểm tra localStorage ngay lập tức ──
+  if (hasContributedLocally()) {
+    _sessionContributed = true; // đồng bộ flag
+    disableContributeButton();  // khóa nút luôn
+    showToast('⚠️ Mỗi người chỉ được đóng góp 1 lần để đảm bảo tính chính xác của dữ liệu. Cảm ơn bạn!', 'error');
     return;
   }
   
@@ -876,38 +944,112 @@ function closeContributeModal() {
   $('contributeModal').classList.add('hidden');
 }
 
-function executeContribute() {
+async function executeContribute() {
   const btn = $('submitContributeBtn');
   const oldText = btn.innerText;
   const oldBg = btn.style.background;
-  
-  btn.innerText = 'Đang đẩy dữ liệu...';
+
+  // ── Lớp 0: Double-check RAM flag (không thể bypass) ──
+  if (_sessionContributed) {
+    showToast('⚠️ Bạn đã đóng góp trong phiên này rồi!', 'error');
+    closeContributeModal();
+    return;
+  }
+
+  // ── Lớp 1: Double-check localStorage trước khi gửi ──
+  if (hasContributedLocally()) {
+    _sessionContributed = true; // đồng bộ flag
+    showToast('⚠️ Bạn đã đóng góp rồi! Mỗi người chỉ được đóng góp 1 lần.', 'error');
+    closeContributeModal();
+    disableContributeButton();
+    return;
+  }
+
+  // ── ĐẶT FLAG NGAY LẬP TỨC trước mọi thao tác async ──
+  // Điều này ngăn double-click và race condition trong cùng session
+  _sessionContributed = true;
+
+  btn.innerText = 'Đang kiểm tra...';
   btn.style.opacity = '0.7';
   btn.disabled = true;
-  
-  // Push to Firebase RTDB
+
+  // ── Lớp 2: Lấy IP + fingerprint, kiểm tra Firebase ──
+  const ip = await getClientIP();
+  const fp = getBrowserFingerprint();
+  const spamKey = makeSpamKey(ip, fp);
+  const spamRef = db.ref('spam_guard/' + spamKey);
+
+  try {
+    const snapshot = await spamRef.once('value');
+    if (snapshot.exists()) {
+      // IP + fingerprint này đã từng đóng góp → chặn
+      markContributedLocally();
+      showToast('⚠️ Mỗi người chỉ được đóng góp 1 lần để đảm bảo tính chính xác. Cảm ơn bạn!', 'error');
+      disableContributeButton();
+      closeContributeModal();
+      return;
+    }
+  } catch (err) {
+    // Firebase Rules chặn đọc spam_guard → có thể là do Rules chưa cấu hình đúng.
+    // Trong trường hợp này, vẫn tiếp tục nhưng ghi chú lại.
+    // Nếu muốn an toàn tuyệt đối, uncomment dòng dưới để chặn luôn:
+    // showToast('Không thể xác minh. Vui lòng thử lại sau!', 'error');
+    // _sessionContributed = false; btn.disabled = false; btn.innerText = oldText; return;
+    console.warn('spam_guard read failed (possible Rules config issue):', err.message);
+  }
+
+  btn.innerText = 'Đang đẩy dữ liệu...';
+
+  // ── Bước 1: Ghi contribution ──
   db.ref('contributions').push({
     score: state.finalScore,
     method: state.method,
     aspirations: state.aspirations,
+    fp: fp, // lưu fingerprint để phân tích
     timestamp: firebase.database.ServerValue.TIMESTAMP
-  }).then(() => {
-    btn.innerText = '✅ Cảm ơn bạn!';
-    btn.style.background = '#10b981'; // green
-    btn.style.opacity = '1';
-    
-    setTimeout(() => {
+  })
+    .then(() => {
+      // ── Bước 2: Ghi spam_guard ──
+      db.ref('spam_guard/' + spamKey).set({
+        ts: firebase.database.ServerValue.TIMESTAMP
+      }).catch(err => {
+        console.warn('spam_guard write blocked (check Firebase Rules):', err.message);
+      });
+
+      markContributedLocally();
+      btn.innerText = '✅ Cảm ơn bạn đã đóng góp!';
+      btn.style.background = '#10b981';
+      btn.style.color = '#fff';
+      btn.style.opacity = '1';
+      // KHÔNG re-enable button — khóa vĩnh viễn trong session này
+      setTimeout(() => {
+        disableContributeButton();
+        closeContributeModal();
+      }, 2000);
+    })
+    .catch(err => {
+      console.error(err);
+      // Gửi thất bại → reset flag để cho phép thử lại
+      _sessionContributed = false;
+      showToast('Có lỗi xảy ra khi kết nối máy chủ! Vui lòng thử lại.', 'error');
       btn.innerText = oldText;
       btn.style.background = oldBg;
+      btn.style.opacity = '1';
       btn.disabled = false;
-      closeContributeModal();
-    }, 1500);
-  }).catch(err => {
-    console.error(err);
-    showToast("Có lỗi xảy ra khi kết nối máy chủ!", 'error');
-    btn.innerText = oldText;
-    btn.style.background = oldBg;
-    btn.disabled = false;
+    });
+}
+
+/** Vô hiệu hóa nút đóng góp vĩnh viễn trong session này */
+function disableContributeButton() {
+  // Ẩn tất cả các nút mở modal đóng góp
+  const btns = document.querySelectorAll('[onclick="openContributeModal()"], [data-contribute]');
+  btns.forEach(b => {
+    b.disabled = true;
+    b.style.opacity = '0.5';
+    b.style.cursor = 'not-allowed';
+    b.title = 'Bạn đã đóng góp rồi!';
+    // Xóa onclick để không thể gọi lại
+    b.setAttribute('onclick', 'showToast(\'⚠️ Bạn đã đóng góp rồi! Cảm ơn bạn.\', \'error\')');
   });
 }
 
@@ -1005,7 +1147,7 @@ function recalculatePredictions() {
       }
       
       // Define a realistic range around the base prediction to filter out trolls (e.g., +/- 20% of scale)
-      const scale = (method === 'x12' || method === 'thpt' && m._basePred <= 30) ? (method === 'x12' ? 10 : 30) : 100;
+      const scale = (method === 'thpt') ? 30 : 100; // tsa/x12/x13 đều thang 100, thpt thang 30
       const trollThreshold = scale * 0.2; 
       
       let scores = globalContributions
@@ -1124,6 +1266,12 @@ document.addEventListener('DOMContentLoaded', () => {
   initFirebaseSync();
   updateCounterUI();
   loadFromURL();
+
+  // Disable contribute button ngay khi load nếu đã đóng góp rồi
+  if (hasContributedLocally()) {
+    _sessionContributed = true;
+    disableContributeButton();
+  }
   
   if (state.rawScore !== null) {
     calculateFinalScore();

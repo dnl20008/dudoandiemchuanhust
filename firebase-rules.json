@@ -1,0 +1,50 @@
+{
+  "rules": {
+    ".read": "true",
+    "chat": {
+      "$messageId": {
+        ".write": "!data.exists() || (data.exists() && newData.child('likes').isNumber() && newData.child('name').val() === data.child('name').val() && newData.child('text').val() === data.child('text').val())",
+        ".validate": "newData.hasChildren(['name', 'text', 'timestamp'])",
+        "name": {
+          ".validate": "newData.isString() && newData.val().length <= 50"
+        },
+        "text": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 500"
+        },
+        "timestamp": {
+          ".validate": "newData.isNumber()"
+        },
+        "likes": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "replyTo": {
+          ".validate": "newData.isString()"
+        }
+      }
+    },
+    "contributions": {
+      "$contribId": {
+        ".write": "!data.exists()",
+        ".validate": "newData.hasChildren(['score', 'method', 'aspirations', 'timestamp'])",
+        "score": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+        },
+        "method": {
+          ".validate": "newData.isString() && (newData.val() === 'tsa' || newData.val() === 'x12' || newData.val() === 'x13' || newData.val() === 'thpt')"
+        },
+        "aspirations": {
+          ".validate": "newData.hasChildren()"
+        },
+        "timestamp": {
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
+    "spam_guard": {
+      "$key": {
+        ".read": true,
+        ".write": "!data.exists()"
+      }
+    }
+  }
+}
