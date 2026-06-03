@@ -446,37 +446,5 @@
       </div>
     </div>
   </div>
-
-  <!-- LIVE CHAT BUBBLE & PANEL -->
-  <button id="chatBubbleBtn" onclick="toggleChat()" style="position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:var(--red);color:#fff;border:none;box-shadow:0 8px 24px rgba(200,0,26,0.3);cursor:pointer;z-index:999;display:flex;justify-content:center;align-items:center;transition:transform 0.2s;">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-  </button>
-
-  <div id="chatPanel" class="hidden" style="position:fixed;bottom:90px;right:24px;width:320px;height:450px;background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.15);z-index:999;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--pink-pale);">
-    <div style="background:var(--red);color:#fff;padding:16px;font-weight:700;display:flex;justify-content:space-between;align-items:center;">
-      <span>💬 Cộng đồng BKHN 2026</span>
-      <button onclick="toggleChat()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">&times;</button>
-    </div>
-    <div id="chatMessages" style="flex:1;padding:16px;overflow-y:auto;background:#fafafa;display:flex;flex-direction:column;gap:12px;font-size:13px;">
-      <!-- Messages here -->
-    </div>
-    <div style="padding:12px;background:#fff;border-top:1px solid var(--pink-pale);display:flex;flex-direction:column;gap:8px;position:relative;">
-      <!-- Reply Indicator -->
-      <div id="chatReplyIndicator" class="hidden" style="background:#f3f4f6; padding:6px 10px; border-radius:6px; font-size:11px; display:flex; justify-content:space-between; align-items:center; border-left:3px solid var(--red);">
-        <div>
-          <strong style="color:var(--red);">Đang trả lời: </strong>
-          <span id="chatReplyName" style="color:#4b5563;"></span>
-        </div>
-        <button onclick="cancelReply()" style="background:none;border:none;color:#9ca3af;cursor:pointer;font-size:14px;line-height:1;">&times;</button>
-      </div>
-
-      <input type="text" id="chatNameInput" placeholder="Tên của bạn" style="width:100%;padding:8px 12px;border:1px solid var(--pink-pale);border-radius:6px;outline:none;font-size:12px;" />
-      <div style="display:flex;gap:8px;">
-        <input type="text" id="chatMsgInput" placeholder="Nhập tin nhắn..." onkeypress="if(event.key==='Enter') sendChatMessage()" style="flex:1;padding:8px 12px;border:1px solid var(--pink-pale);border-radius:6px;outline:none;font-size:13px;" />
-        <button onclick="sendChatMessage()" style="background:var(--red);color:#fff;border:none;padding:0 16px;border-radius:6px;cursor:pointer;font-weight:700;">Gửi</button>
-      </div>
-    </div>
-  </div>
-
 </body>
 </html>
