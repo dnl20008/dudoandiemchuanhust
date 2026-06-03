@@ -408,6 +408,7 @@
 
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/stockchart.js"></script>
   <!-- CUSTOM SHARE MODAL -->
   <div id="shareModal" class="share-modal-overlay hidden">
     <div class="share-modal-content anim-fade-up">
@@ -446,5 +447,21 @@
       </div>
     </div>
   </div>
+
+  <!-- STOCK CHART BUBBLE BUTTON -->
+  <button id="scBubbleBtn" onclick="window.scTogglePanel && window.scTogglePanel()" title="Xem biểu đồ biến động điểm chuẩn"
+    style="position:fixed;bottom:24px;right:24px;width:60px;height:60px;border-radius:50%;
+    background:linear-gradient(135deg,#c8001a,#1a0a0a);color:#fff;border:none;
+    box-shadow:0 8px 28px rgba(200,0,26,0.45);cursor:pointer;z-index:998;
+    display:flex;justify-content:center;align-items:center;
+    transition:transform .2s,box-shadow .2s;font-size:24px;"
+    onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 12px 36px rgba(200,0,26,.6)'"
+    onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 8px 28px rgba(200,0,26,.45)'">
+    📊
+    <span id="scBubbleBadge" style="position:absolute;top:2px;right:2px;background:#22c55e;color:#fff;
+      font-size:9px;font-weight:900;border-radius:999px;padding:1px 5px;display:none;
+      border:1.5px solid #fff;"></span>
+  </button>
+
 </body>
 </html>

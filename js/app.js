@@ -783,9 +783,9 @@ function executeShare() {
     copyBtn.innerText = '✅ Đã copy!';
     copyBtn.style.background = '#10b981'; // green
     setTimeout(() => {
-      btn.innerText = '🔗 Chia sẻ & khoe kết quả với bạn bè';
-      btn.style.background = '#fff';
-      btn.style.color = '#c8001a';
+      copyBtn.innerText = '🔗 Chia sẻ & khoe kết quả với bạn bè';
+      copyBtn.style.background = '#fff';
+      copyBtn.style.color = '#c8001a';
       closeShareModal();
     }, 1500);
   }).catch(() => {
@@ -1279,6 +1279,19 @@ function sendChatMessage() {
   const msg = msgInput.value.trim();
   if (!msg) return;
   
+  // Validate độ dài
+  if (nameInput.length > 50) {
+    showToast('Tên quá dài! Tối đa 50 ký tự.', 'error');
+    return;
+  }
+  if (msg.length > 500) {
+    showToast('Tin nhắn quá dài! Tối đa 500 ký tự.', 'error');
+    return;
+  }
+
+  const sendBtn = $('chatSendBtn');
+  if (sendBtn) { sendBtn.disabled = true; sendBtn.style.opacity = '0.6'; }
+
   const payload = {
     name: nameInput,
     text: msg,
@@ -1290,10 +1303,18 @@ function sendChatMessage() {
     payload.replyTo = JSON.stringify({ name: currentReplyTo.name, text: currentReplyTo.text });
   }
   
-  db.ref('chat').push(payload);
-  
-  msgInput.value = '';
-  cancelReply();
+  db.ref('chat').push(payload)
+    .then(() => {
+      msgInput.value = '';
+      cancelReply();
+    })
+    .catch((err) => {
+      console.error('Chat send error:', err);
+      showToast('Không gửi được tin nhắn: ' + (err.message || 'Lỗi kết nối'), 'error');
+    })
+    .finally(() => {
+      if (sendBtn) { sendBtn.disabled = false; sendBtn.style.opacity = '1'; }
+    });
 }
 
 function scrollToBottom() {
