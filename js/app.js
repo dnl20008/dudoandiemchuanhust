@@ -1201,14 +1201,17 @@ function recalculatePredictions() {
         let crowdScore = 0;
         if (scores.length <= 2) {
            crowdScore = scores.reduce((a,b)=>a+b,0)/scores.length;
+        } else if (scores.length % 2 === 0) {
+           const mid = scores.length / 2;
+           crowdScore = (scores[mid - 1] + scores[mid]) / 2; // True median
         } else {
            const mid = Math.floor(scores.length / 2);
-           crowdScore = scores[mid]; // Simple Median
+           crowdScore = scores[mid]; // True median
         }
         
         // Weight: max 0.3 (30%) weight to ensure BasePred remains the dominant anchor
-        // Requires 100 valid contributions to reach max weight
-        let weight = Math.min(scores.length / 100, 0.3);
+        // Tính tỉ lệ chuẩn hơn bằng công thức đường cong tiệm cận, mượt mà hơn và tránh lỗi đạt đỉnh quá sớm
+        let weight = 0.3 * (scores.length / (scores.length + 30));
         
         let newPred = m._basePred * (1 - weight) + crowdScore * weight;
         
